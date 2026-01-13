@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fredrik Heyman</title>
+  <meta name="description" content="Fredrik Heyman — Associate Professor / Senior Research Fellow (IFN). Research on globalization, digitalization, labor economics, and international investments." />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-grid">
+      <div>
+        <h1>Fredrik Heyman</h1>
+        <p class="subtitle">Associate Professor / Senior Research Fellow</p>
+        <p class="subtitle small">Research Institute of Industrial Economics (IFN) · Lund University</p>
+        <div class="button-row">
+          <a class="btn" href="https://www.ifn.se/en/researchers/ifn-researcher/fredrik-heyman/" target="_blank" rel="noreferrer">IFN profile</a>
+          <a class="btn" href="https://www.ifn.se/globalassets/forskare/heyman-fredrik/cv-heyman-sept-2025.pdf" target="_blank" rel="noreferrer">CV (PDF)</a>
+          <a class="btn" href="https://scholar.google.com/citations?hl=en&user=EDcYdh0AAAAJ" target="_blank" rel="noreferrer">Google Scholar</a>
+          <a class="btn" href="https://www.ifn.se/en/researchers/ifn-researcher/fredrik-heyman/press-photos/" target="_blank" rel="noreferrer">Press photos</a>
+        </div>
+      </div>
+
+      <div class="card contact-card">
+        <h2>Contact</h2>
+        <p><strong>Email:</strong> <a href="mailto:fredrik.heyman@ifn.se">fredrik.heyman@ifn.se</a></p>
+        <p><strong>Phone:</strong> +46 (0)8 665 4537</p>
+        <p class="muted">Stockholm, Sweden</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="about" class="section">
+      <h2>About</h2>
+      <p>
+        I am a Senior Research Fellow at the Research Institute of Industrial Economics (IFN) and an Associate Professor in Economics.
+        My research focuses on globalization, digitalization, international investments, and labor economics.
+      </p>
+    </section>
+
+    <section id="research" class="section">
+      <h2>Research interests</h2>
+      <div class="tags" aria-label="Research interests">
+        <span class="tag">Digitalization</span>
+        <span class="tag">Globalization</span>
+        <span class="tag">International investments</span>
+        <span class="tag">International trade</span>
+        <span class="tag">Labor economics</span>
+        <span class="tag">Technological change</span>
+      </div>
+
+      <h3>Selected research questions</h3>
+      <ul>
+        <li>How are firms and workers affected by globalization?</li>
+        <li>How do mergers and acquisitions influence employees and firms?</li>
+        <li>What are the effects of foreign direct investment and multinational presence in Sweden on the labor market?</li>
+        <li>How does digitalization affect industrial restructuring?</li>
+        <li>How does technological change influence job and productivity dynamics?</li>
+      </ul>
+    </section>
+
+    <section id="current" class="section">
+      <h2>Current writings</h2>
+      <div id="current-writings" class="list"></div>
+    </section>
+
+    <section id="pubs" class="section">
+      <div class="pubs-header">
+        <h2>Publications</h2>
+        <div class="pubs-controls">
+          <input id="search" class="search" type="search" placeholder="Search titles, authors, venues…" />
+          <select id="category" class="select" aria-label="Category filter"></select>
+        </div>
+      </div>
+      <div id="pub-list" class="list"></div>
+    </section>
+
+    <section id="cv" class="section">
+      <h2>CV</h2>
+      <p>
+        Download: <a href="https://www.ifn.se/globalassets/forskare/heyman-fredrik/cv-heyman-sept-2025.pdf" target="_blank" rel="noreferrer">CV (PDF)</a>
+      </p>
+      <p class="muted">
+        Tip: consider uploading a “web version” of your CV without personal details (address, family status) and link that here.
+      </p>
+    </section>
+
+    <footer class="footer">
+      <p class="muted">
+        Built from IFN publication lists + linked IFN publication pages; older items supplemented from the CV.
+      </p>
+    </footer>
+  </main>
+
+  <script type="module" src="assets/main.js"></script>
+</body>
+</html>
