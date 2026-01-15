@@ -123,3 +123,139 @@ li{margin:6px 0; color:var(--text)}
   border-color: rgba(255, 255, 255, 0.22);
   color: var(--text);
 }
+
+
+/* =========================
+   Light Pro (3-line entries)
+   ========================= */
+
+:root{
+  --bg: #f6f8fc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: #e5e7eb;
+  --accent: #1d4ed8;
+  --accent2: #2563eb;
+  --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  --radius: 16px;
+}
+
+html, body{
+  background: var(--bg);
+  color: var(--text);
+}
+
+a{ color: var(--accent); }
+a:hover{ color: var(--accent2); }
+
+.container{
+  max-width: 980px;
+}
+
+/* Card look used across sections */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Section headings */
+.section h2{
+  color: var(--text);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+/* Lists: consistent spacing */
+ul.list{
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+ul.list > li{
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+ul.list > li:first-child{
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Unified entry pattern */
+.entry-title{
+  display: inline-block;
+  font-weight: 750;
+  color: var(--accent);
+  text-decoration: none;
+  line-height: 1.35;
+}
+.entry-title:hover{
+  text-decoration: underline;
+}
+.entry-title.no-link{
+  color: var(--text);
+  cursor: default;
+  text-decoration: none;
+}
+
+.entry-authors{
+  margin-top: 6px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.entry-venue{
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Small “chips” (DOI / PDF / IFN) */
+.entry-links{
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip{
+  display: inline-block;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  text-decoration: none;
+}
+.chip:hover{
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+/* Make existing "small" behave like the authors line */
+.small{
+  margin-top: 6px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* NAV: lighter header */
+.nav{
+  background: #0b1220; /* you can also make this lighter if you want */
+}
+.nav a{
+  color: rgba(255,255,255,0.9);
+}
+.nav a:hover{
+  color: #ffffff;
+}
+
+/* Optional: improve readability on very wide screens */
+.section{
+  scroll-margin-top: 90px; /* so heading lands nicely under sticky nav */
+}
+
