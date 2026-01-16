@@ -1,0 +1,274 @@
+/* =========================================================
+   Fredrik Heyman — Theme 2 (Muted Slate) — UNIFIED ENTRY SYSTEM
+   Goal: same look as your current site, but with ONE consistent “entry” component.
+   Works best if you gradually migrate list items to:
+     <li class="entry">
+       <a class="entry-title" ...>Title</a>   OR <span class="entry-title nolink">Title</span>
+       <div class="entry-authors">...</div>
+       <div class="entry-venue">...</div>
+       <div class="entry-links"><a class="chip" ...>DOI</a></div>
+     </li>
+
+   Compatibility: also styles your existing markup (.pub-title/.pub-meta/.item-title/.small).
+   ========================================================= */
+
+:root{
+  --bg:#f6f7f9;
+  --bg2:#eef2f7;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --line:#e2e8f0;
+
+  --accent:#2563eb;
+  --accent2:#1d4ed8;
+
+  --navbg:#0f2a44;
+  --navtext:rgba(255,255,255,.92);
+  --navmuted:rgba(255,255,255,.74);
+
+  --radius:18px;
+  --shadow:0 10px 28px rgba(15,23,42,.08);
+  --shadow2:0 6px 16px rgba(15,23,42,.06);
+
+  /* sticky header height used for anchor offsets */
+  --anchor-offset: 92px;
+
+  /* entry spacing */
+  --entry-gap: 14px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background:
+    radial-gradient(900px 520px at 12% 0%, rgba(37,99,235,.10), transparent 60%),
+    radial-gradient(900px 520px at 88% 0%, rgba(37,99,235,.06), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg2));
+  color:var(--text);
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{color:var(--accent2); text-decoration:underline}
+
+.container{width:min(1100px, 92vw); margin:0 auto}
+
+/* ========== Sticky top navigation ========== */
+.nav{
+  position:sticky; top:0; z-index:50;
+  background: rgba(15,42,68,.96);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,.12);
+}
+.nav-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:14px 0;
+}
+.brand{display:flex; flex-direction:column; gap:2px; min-width:220px}
+.brand .name{font-weight:800; letter-spacing:-.01em; color:var(--navtext); font-size:18px}
+.brand .role{color:var(--navmuted); font-size:13px; line-height:1.25}
+
+.menu{display:flex; gap:14px; flex-wrap:wrap; justify-content:flex-end}
+.menu a{
+  color:rgba(255,255,255,.88);
+  font-size:14px; font-weight:650;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid transparent;
+  text-decoration:none;
+}
+.menu a:hover{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.12);
+  text-decoration:none;
+}
+
+/* Fix: anchor jumps land with section title visible below sticky nav */
+[id]{ scroll-margin-top: var(--anchor-offset); }
+
+/* ========== Hero / About ========== */
+.hero{ padding:44px 0 14px; }
+.hero-grid{
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  gap:28px;
+  align-items:start;
+}
+.photo{
+  width:240px;
+  aspect-ratio: 4/5;
+  border-radius: 22px;
+  overflow:hidden;
+  border:1px solid rgba(15,23,42,.08);
+  box-shadow: var(--shadow);
+  background: rgba(255,255,255,.60);
+}
+.photo img{width:100%; height:100%; object-fit:cover}
+
+.h1{
+  font-size:40px; line-height:1.15;
+  margin:0 0 10px;
+  letter-spacing:-.04em;
+}
+.lead{ color:var(--muted); font-size:16px; line-height:1.65; margin:0 0 14px; }
+.meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+
+/* Reuse pill for “chips” */
+.pill, .chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  font-weight:650;
+  color: var(--text);
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.75);
+  padding:7px 10px;
+  border-radius:999px;
+  text-decoration:none !important;
+}
+.pill:hover, .chip:hover{
+  background: rgba(37,99,235,.08);
+  border-color: rgba(37,99,235,.18);
+}
+
+/* ========== Sections / cards ========== */
+main.container{ padding-bottom: 48px; }
+.section{ padding:30px 0; }
+.section h2{ margin:0 0 10px; font-size:28px; letter-spacing:-.02em; }
+.subnote{ color:var(--muted); margin:-2px 0 14px; font-size:14px; line-height:1.6; }
+
+.card{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.92);
+  border-radius: var(--radius);
+  padding:18px 18px;
+  box-shadow: var(--shadow2);
+}
+
+/* ========== UNIFIED ENTRY SYSTEM ========== */
+/* Apply to any list with class="list" by default */
+.list{
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+
+/* New unified entry */
+.entry{
+  padding: var(--entry-gap) 0;
+  border-top:1px solid var(--line);
+}
+.entry:first-child{ border-top:0; padding-top:0; }
+
+/* Title row */
+.entry-title{
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing:-.01em;
+  text-decoration:none;
+}
+.entry-title:hover{ text-decoration:underline; }
+.entry-title.nolink{ color: var(--accent); cursor: default; }
+.entry-title.nolink:hover{ text-decoration:none; }
+
+/* Two meta rows */
+.entry-authors{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-style: italic;
+}
+.entry-venue{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/* Links row */
+.entry-links{ margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; }
+.entry-links .chip{ padding:5px 10px; font-size:12px; font-weight:700; }
+
+/* ========== Compatibility layer (so old HTML looks identical) ========== */
+/* If your <li> doesn't have class entry yet, make it look like one */
+.list > li{
+  padding: var(--entry-gap) 0;
+  border-top:1px solid var(--line);
+}
+.list > li:first-child{ border-top:0; padding-top:0; }
+
+/* Old title variants */
+.pub-title,
+.item-title,
+.list > li > a:first-child,
+.list > li > span:first-child{
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing:-.01em;
+}
+
+/* Old meta variants */
+.pub-meta,
+.small{
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+/* Old DOI “pill” in publications */
+.pub-links .pill{
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:700;
+}
+
+/* Footer */
+.footer{
+  margin:32px 0 10px 0;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .hero-grid{grid-template-columns: 1fr;}
+  .photo{width:220px}
+  .h1{font-size:34px}
+  :root{ --anchor-offset: 108px; } /* more room when nav wraps */
+}
+
+/* --- Patch v3: force Media to match entry-title style (blue + bold) --- */
+
+/* Ensure all list content uses the same typography */
+.list,
+.list li,
+.list li * {
+  font-family: inherit;
+}
+
+/* Media: until entries are converted to 3-line items with optional links,
+   style each line like a title so the section matches Publications/In process. */
+#media .card .list li {
+  color: var(--accent) !important;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+#media .card .list li a {
+  color: var(--accent) !important;
+  font-weight: 800;
+}
+
+#media .card .list li:hover {
+  color: var(--linkHover) !important;
+}
+#media .card .list li a:hover {
+  color: var(--linkHover) !important;
+}
