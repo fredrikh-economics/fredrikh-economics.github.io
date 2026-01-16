@@ -335,80 +335,38 @@ main.container{ padding-bottom: 48px; }
 
 
 
-
 /* =========================================================
-   NAV / TOPBAR: gör den robust på mobil + undvik "försvunna" länkar
-   Klistra in längst ned i style_final.css
+   NAV: Mobile fix for your existing .nav/.nav-inner/.brand/.menu
+   Klistra in längst ned i style_final.css (ersätt tidigare nav-patch)
    ========================================================= */
 
-/* Gör menyn och headern flexibla så de kan wrappa snyggt */
-.topbar,
-.navbar,
-header .nav,
-nav {
-  flex-wrap: wrap;
-}
-
-/* Själva listan med länkar: inga radbrytningar, scroll på mobil */
-nav ul,
-.nav-links,
-.topbar nav ul {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 18px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;       /* Firefox */
-}
-nav ul::-webkit-scrollbar,
-.nav-links::-webkit-scrollbar,
-.topbar nav ul::-webkit-scrollbar {
-  display: none;               /* Chrome/Safari */
-}
-
-/* Se till att länkar inte trycks ihop */
-nav a,
-.nav-links a,
-.topbar nav a {
-  white-space: nowrap;
-  flex: 0 0 auto;
-}
-
-/* Mobil: lägg länkarna på egen rad under namn/titel */
-@media (max-width: 820px) {
-  .topbar,
-  .navbar,
-  header {
-    align-items: stretch;
+@media (max-width: 900px){
+  /* Låt headern wrappa till två rader */
+  .nav-inner{
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
   }
 
-  /* Den vänstra delen (namn/titel) får full bredd */
-  .brand,
-  .site-title,
-  .topbar-left {
+  /* Namn/titel tar hela första raden */
+  .brand{
     width: 100%;
-    padding-bottom: 6px;
+    min-width: 0;
   }
 
-  /* Nav på egen rad + lite luft */
-  nav,
-  .topbar nav,
-  .nav-links {
+  /* Menyn tar hela andra raden och kan scrolla i sidled */
+  .menu{
     width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+    padding-bottom: 4px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
-  nav ul,
-  .nav-links,
-  .topbar nav ul {
-    padding-bottom: 6px;
-  }
-}
-
-/* Gör att man "landar" rätt när man klickar i menyn */
-section[id],
-.anchor,
-h2[id],
-h1[id] {
-  scroll-margin-top: 110px; /* justera vid behov */
+  .menu::-webkit-scrollbar{ display:none; }
 }
 
