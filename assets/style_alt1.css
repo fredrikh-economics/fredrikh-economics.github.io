@@ -1,0 +1,372 @@
+/* =========================================================
+   Fredrik Heyman — ALT 1: REFINED
+   Subtila förbättringar för bättre läsbarhet och UX
+
+   ÄNDRINGAR FRÅN ORIGINAL:
+   ✓ Större entry-spacing (14px → 18px) för bättre läsbarhet
+   ✓ Hover-effekt på publikationer med subtil bakgrund
+   ✓ Smooth transitions på alla interaktiva element
+   ✓ Förbättrad visuell hierarki med starkare kontraster
+   ✓ Starkare shadows för bättre depth
+   ✓ Förbättrad chip/badge design
+   ========================================================= */
+
+:root{
+  --bg:#f6f7f9;
+  --bg2:#eef2f7;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --line:#e2e8f0;
+
+  --accent:#2563eb;
+  --accent2:#1d4ed8;
+
+  --navbg:#0f2a44;
+  --navtext:rgba(255,255,255,.92);
+  --navmuted:rgba(255,255,255,.74);
+
+  --radius:18px;
+  /* ÄNDRING: Starkare shadows för bättre depth */
+  --shadow:0 12px 32px rgba(15,23,42,.10);
+  --shadow2:0 8px 20px rgba(15,23,42,.08);
+
+  --anchor-offset: 92px;
+
+  /* ÄNDRING: Större entry-spacing för bättre läsbarhet */
+  --entry-gap: 18px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background:
+    radial-gradient(900px 520px at 12% 0%, rgba(37,99,235,.10), transparent 60%),
+    radial-gradient(900px 520px at 88% 0%, rgba(37,99,235,.06), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg2));
+  color:var(--text);
+}
+a{
+  color:var(--accent);
+  text-decoration:none;
+  /* NYTT: Smooth transition på länkar */
+  transition: color 0.2s ease;
+}
+a:hover{color:var(--accent2); text-decoration:underline}
+
+.container{width:min(1100px, 92vw); margin:0 auto}
+
+/* ========== Sticky top navigation ========== */
+.nav{
+  position:sticky; top:0; z-index:50;
+  background: rgba(15,42,68,.96);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,.12);
+  /* NYTT: Backdrop blur för modernare känsla */
+  backdrop-filter: blur(10px);
+}
+.nav-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:14px 0;
+}
+.brand{display:flex; flex-direction:column; gap:2px; min-width:220px}
+.brand .name{font-weight:800; letter-spacing:-.01em; color:var(--navtext); font-size:18px}
+.brand .role{color:var(--navmuted); font-size:13px; line-height:1.25}
+
+.menu{display:flex; gap:14px; flex-wrap:nowrap; justify-content:flex-end; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;}
+.menu::-webkit-scrollbar{display:none;}
+
+.menu a{
+  white-space:nowrap;
+  color:rgba(255,255,255,.88);
+  font-size:14px; font-weight:650;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid transparent;
+  text-decoration:none;
+  /* NYTT: Smooth transition på menylänkar */
+  transition: all 0.2s ease;
+}
+.menu a:hover{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.12);
+  text-decoration:none;
+  /* NYTT: Subtil transform vid hover */
+  transform: translateY(-1px);
+}
+
+[id]{ scroll-margin-top: var(--anchor-offset); }
+
+/* ========== Hero / About ========== */
+.hero{ padding:44px 0 14px; }
+.hero-grid{
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  gap:28px;
+  align-items:start;
+}
+.photo{
+  width:240px;
+  aspect-ratio: 4/5;
+  border-radius: 22px;
+  overflow:hidden;
+  border:1px solid rgba(15,23,42,.08);
+  box-shadow: var(--shadow);
+  background: rgba(255,255,255,.60);
+  /* NYTT: Smooth transition vid hover */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+/* NYTT: Subtil hover-effekt på foto */
+.photo:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(15,23,42,.14);
+}
+.photo img{width:100%; height:100%; object-fit:cover}
+
+.h1{
+  font-size:40px; line-height:1.15;
+  margin:0 0 10px;
+  letter-spacing:-.04em;
+}
+.lead{
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.65;
+  margin:0 0 14px;
+  /* ÄNDRING: Lite mörkare för bättre läsbarhet */
+  color: #475569;
+}
+.meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+
+/* Chips/pills */
+.pill, .chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  font-weight:650;
+  color: var(--text);
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.75);
+  padding:7px 10px;
+  border-radius:999px;
+  text-decoration:none !important;
+  /* NYTT: Smooth transition */
+  transition: all 0.2s ease;
+}
+.pill:hover, .chip:hover{
+  background: rgba(37,99,235,.08);
+  border-color: rgba(37,99,235,.18);
+  /* NYTT: Subtil lift vid hover */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37,99,235,.12);
+}
+
+/* ========== Sections / cards ========== */
+main.container{ padding-bottom: 48px; }
+.section{ padding:30px 0; }
+.section h2{
+  margin:0 0 10px;
+  font-size:28px;
+  letter-spacing:-.02em;
+  /* ÄNDRING: Starkare kontrast för bättre hierarki */
+  color: #0f172a;
+}
+.subnote{ color:var(--muted); margin:-2px 0 14px; font-size:14px; line-height:1.6; }
+
+.card{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.92);
+  border-radius: var(--radius);
+  padding:18px 18px;
+  box-shadow: var(--shadow2);
+  /* NYTT: Smooth transition */
+  transition: box-shadow 0.3s ease;
+}
+
+/* ========== UNIFIED ENTRY SYSTEM ========== */
+.list{
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+
+/* FÖRBÄTTRAD entry med hover-effekt */
+.entry{
+  padding: var(--entry-gap) 0;
+  border-top:1px solid var(--line);
+  /* NYTT: Smooth transition för hover */
+  transition: background-color 0.2s ease, padding-left 0.2s ease;
+  border-radius: 8px;
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.entry:first-child{ border-top:0; padding-top:0; }
+
+/* NYTT: Hover-effekt på publikationer */
+.entry:hover{
+  background-color: rgba(37,99,235,.03);
+  padding-left: 16px;
+}
+
+/* Title row */
+.entry-title{
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing:-.01em;
+  text-decoration:none;
+  /* NYTT: Smooth transition */
+  transition: color 0.2s ease;
+}
+.entry-title:hover{
+  text-decoration:underline;
+  color: var(--accent2);
+}
+.entry-title.nolink{ color: var(--accent); cursor: default; }
+.entry-title.nolink:hover{ text-decoration:none; }
+
+/* Meta rows */
+.entry-authors{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-style: italic;
+}
+.entry-venue{
+  margin-top: 4px;
+  /* ÄNDRING: Lite mörkare för bättre läsbarhet */
+  color: #475569;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/* Links row */
+.entry-links{ margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; }
+.entry-links .chip{ padding:5px 10px; font-size:12px; font-weight:700; }
+
+/* ========== Compatibility layer ========== */
+.list > li{
+  padding: var(--entry-gap) 0;
+  border-top:1px solid var(--line);
+  /* NYTT: Samma hover som .entry */
+  transition: background-color 0.2s ease, padding-left 0.2s ease;
+  border-radius: 8px;
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.list > li:first-child{ border-top:0; padding-top:0; }
+
+/* NYTT: Hover på alla list items */
+.list > li:hover{
+  background-color: rgba(37,99,235,.03);
+  padding-left: 16px;
+}
+
+/* Old title variants */
+.pub-title,
+.item-title,
+.list > li > a:first-child,
+.list > li > span:first-child{
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing:-.01em;
+  transition: color 0.2s ease;
+}
+
+/* Old meta variants */
+.pub-meta,
+.small{
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+/* Footer */
+.footer{
+  margin:32px 0 10px 0;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .hero-grid{grid-template-columns: 1fr;}
+  .photo{width:220px}
+  .h1{font-size:34px}
+  :root{ --anchor-offset: 108px; }
+}
+
+/* Media & Teaching sections */
+.section#media .card .list li{
+  color: var(--text);
+  font-weight: 400;
+}
+.section#media .card .list li .item-title,
+.section#media .card .list li a.item-title{
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.section#teaching .card .list li{
+  color: var(--text);
+  font-weight: 400;
+}
+.section#teaching .card .list li .item-title{
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.section#media .card .list li .small{
+  color: var(--muted);
+  font-size: .97rem;
+  line-height: 1.5;
+}
+
+.section#teaching .card .list li .small{
+  color: var(--muted);
+  font-size: .97rem;
+  line-height: 1.5;
+}
+
+/* Utilities */
+.muted { color: var(--muted); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.nav-links::-webkit-scrollbar{display:none;}
+.entry-venue .chip{margin-left:10px;vertical-align:middle;}
+
+/* Mobile nav fix */
+@media (max-width: 900px){
+  .nav-inner{
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .brand{
+    width: 100%;
+    min-width: 0;
+  }
+
+  .menu{
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .menu::-webkit-scrollbar{ display:none; }
+}
