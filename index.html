@@ -156,8 +156,52 @@
       © 2026 Fredrik Heyman · Built with GitHub Pages
     </div>
 </main>
+
+
+          <script>
+(function(){
+  // Wrap journal name inside Publications venue line without editing each entry.
+  // Assumes journal name is the leading part up to the first digit (volume/year info starts with a digit).
+  var root = document.getElementById("publications");
+  if(!root) return;
+
+  var nodes = root.querySelectorAll(".pub-venue, .entry-venue");
+  nodes.forEach(function(el){
+    // Skip if already wrapped
+    if(el.querySelector(".pub-journal")) return;
+
+    var text = (el.textContent || "").trim();
+    if(!text) return;
+
+    // Find first digit (start of volume/year info). If no digit found, do nothing.
+    var m = text.match(/\d/);
+    if(!m) return;
+
+    var idx = m.index;
+    if(idx <= 1) return;
+
+    var journal = text.slice(0, idx).trim();
+    var rest = text.slice(idx).trim();
+
+    // If journal looks too short, avoid weird results
+    if(journal.length < 6) return;
+
+    el.innerHTML = '<span class="pub-journal"></span> ' + escapeHtml(rest);
+    el.querySelector(".pub-journal").textContent = journal + " ";
+  });
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+})();
+</script>
+
+          
 </body>
 </html>
+
 
 
 
