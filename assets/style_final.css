@@ -382,3 +382,11 @@ main.container{ padding-bottom: 48px; }
 }
 
 
+
+
+
+
+/* Remove italics on author lines (In process, Policy & Swedish, Media) */
+.entry-authors{
+  font-style: normal !important;
+}
