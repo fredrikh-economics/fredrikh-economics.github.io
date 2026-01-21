@@ -371,36 +371,6 @@ main.container{ padding-bottom: 48px; }
 }
 
 
-/* =========================================================
-   Publications: stronger, professional emphasis of venue/journal line
-   (works for BOTH .entry-venue (current) and .pub-venue (alt HTML))
-   Klistra in längst ner i style_final.css
-   ========================================================= */
-
-#publications .entry-venue,
-#publications .pub-venue{
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  background: rgba(15, 23, 42, 0.04);
-}
-
-/* lite luft så den känns som en egen “rad” */
-#publications .entry-venue,
-#publications .pub-venue{
-  margin-top: 6px;
-}
-
-/* gör authors-raden lite mer “secondary” (valfritt men snyggt) */
-#publications .entry-authors,
-#publications .pub-meta{
-  opacity: 0.92;
-  line-height: 1.35;
-}
-
 
 /* Publications: emphasize journal name only (auto-wrapped by JS) */
 #publications .pub-journal{
