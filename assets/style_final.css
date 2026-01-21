@@ -383,10 +383,16 @@ main.container{ padding-bottom: 48px; }
 
 
 
-
-
-
 /* Remove italics on author lines (In process, Policy & Swedish, Media) */
 .entry-authors{
   font-style: normal !important;
 }
+
+
+
+/* Publications: softer, professional journal color (blue-grey) */
+#publications .pub-journal{
+  color: rgba(23, 35, 54, 0.78); /* softer than near-black */
+  font-weight: 700;
+}
+
