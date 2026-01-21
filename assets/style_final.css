@@ -371,5 +371,12 @@ main.container{ padding-bottom: 48px; }
 }
 
 
+/* Publications: subtle venue emphasis (CSS-only) */
+#publications .entry-venue,
+#publications .pub-venue {
+  font-weight: 600;
+  color: rgba(27, 40, 61, 0.88);
+  letter-spacing: 0.1px;
+}
 
 
