@@ -401,3 +401,15 @@ main.container{ padding-bottom: 48px; }
   line-height: 1.35;
 }
 
+
+/* Publications: emphasize journal name only (auto-wrapped by JS) */
+#publications .pub-journal{
+  font-weight: 700;
+  color: rgba(27, 40, 61, 0.92);
+}
+#publications .pub-venue,
+#publications .entry-venue{
+  color: rgba(27, 40, 61, 0.80);
+}
+
+
