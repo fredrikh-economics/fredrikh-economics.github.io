@@ -370,3 +370,11 @@ main.container{ padding-bottom: 48px; }
   .menu::-webkit-scrollbar{ display:none; }
 }
 
+
+/* Publications: emphasize journal/venue line (Version B) */
+#publications .pub-venue{
+  font-weight: 700;
+}
+#publications .pub-meta{
+  line-height: 1.35;
+}
