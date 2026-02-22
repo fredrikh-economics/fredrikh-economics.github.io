@@ -320,6 +320,8 @@ file_rows = [
      "COMPARE_lnva_L_-4_9.png"),
     ("07_honest_did.do",        "HonestDiD sensitivity",
      "HonestDiD_M_<y>.xlsx/.png, HonestDiD_RM_<y>.xlsx/.png"),
+    ("08_figures.do",           "Standalone figure generator",
+     "Fig_TWFE/SA/CSDID/Compare_<y>.png, Fig_All_TWFE/SA/CSDID.png, Fig_HonestDiD_*.png"),
 ]
 for fname, role, outputs in file_rows:
     r = tbl2.add_row().cells

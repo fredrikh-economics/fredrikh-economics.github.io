@@ -227,6 +227,8 @@ f_data = [
      "COMPARE_lnva_L_-4_9.png"],
     ["07_honest_did.do",        "HonestDiD sensitivity",
      "HonestDiD_M/RM_<y>.xlsx/.png"],
+    ["08_figures.do",           "Standalone figure generator",
+     "Fig_TWFE/SA/CSDID/Compare/All/HonestDiD_*.png"],
 ]
 fw = [3.8*cm, 4*cm, COL - 7.8*cm]
 ft = Table(f_data, colWidths=fw, repeatRows=1)

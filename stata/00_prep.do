@@ -327,6 +327,7 @@ do "$DODIR\04_did_imputation.do"
 do "$DODIR\05_extra_tests.do"
 do "$DODIR\06_comparison_figure.do"
 do "$DODIR\07_honest_did.do"
+do "$DODIR\08_figures.do"
 
 di as result "══════════════════════════════════════"
 di as result " ALL DONE"
