@@ -44,7 +44,35 @@ async function lookupByBarcode(barcode) {
     }
   } catch {}
 
-  // 2. Prova Systembolaget (om API-nyckel finns)
+  // 2. Prova UPC Item DB (gratis, ingen nyckel krävs)
+  try {
+    const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`);
+    const data = await res.json();
+    const item = data.items?.[0];
+    if (item && item.title) {
+      const name = item.title;
+      return {
+        source: 'upcitemdb',
+        barcode,
+        name,
+        producer: item.brand || '',
+        country: '',
+        region: '',
+        vintage: (name.match(/\b(19|20)\d{2}\b/) || [])[0] || '',
+        alcohol: '',
+        grapes: extractGrapes(item.description || '', ''),
+        volume: '',
+        price: item.lowest_recorded_price ? `${item.lowest_recorded_price} kr` : '',
+        taste: item.description || '',
+        foodPairings: [],
+        categories: item.category || '',
+        productId: '',
+        storeLink: `https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(name)}`,
+      };
+    }
+  } catch {}
+
+  // 3. Prova Systembolaget (om API-nyckel finns)
   if (SYSTEMBOLAGET_API_KEY) {
     try {
       const sbWine = await lookupSystembolaget(barcode);
@@ -149,7 +177,61 @@ function saveWine(wine) {
 
 // ─── Scanner ──────────────────────────────────────────────────────────────────
 
-function ScannerScreen({ onWineFound }) {
+function NotFoundScreen({ barcode, onScanAgain }) {
+  const [query, setQuery] = useState(barcode || '');
+  return (
+    <ScrollView style={s.detailBg} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+      <Text style={{ fontSize: 48, textAlign: 'center', marginBottom: 12 }}>🔍</Text>
+      <Text style={{ fontSize: 20, fontWeight: '700', color: '#1a0a0e', textAlign: 'center', marginBottom: 8 }}>
+        Vin hittades inte
+      </Text>
+      <Text style={{ color: '#666', textAlign: 'center', marginBottom: 4 }}>
+        Streckkod: {barcode}
+      </Text>
+      <Text style={{ color: '#999', textAlign: 'center', fontSize: 13, marginBottom: 28, lineHeight: 18 }}>
+        Vinet finns inte i någon av databaserna.{'\n'}Sök direkt på Systembolaget nedan.
+      </Text>
+
+      <Text style={[s.modalLabel, { color: '#555', marginTop: 0 }]}>Sök på Systembolaget</Text>
+      <TextInput
+        style={[s.input, { marginBottom: 10 }]}
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Vinnamn eller streckkod..."
+        placeholderTextColor="#aaa"
+        returnKeyType="search"
+        onSubmitEditing={() => Linking.openURL(`https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(query)}`)}
+      />
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor: '#006400', marginBottom: 10 }]}
+        onPress={() => Linking.openURL(`https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(query)}`)}>
+        <Text style={s.btnText}>Öppna Systembolaget →</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor: '#6B2737', marginBottom: 10 }]}
+        onPress={() => Linking.openURL(`https://www.vivino.com/search/wines?q=${encodeURIComponent(query)}`)}>
+        <Text style={s.btnText}>Sök på Vivino →</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6B2737' }]}
+        onPress={onScanAgain}>
+        <Text style={[s.btnText, { color: '#6B2737' }]}>Skanna igen</Text>
+      </TouchableOpacity>
+
+      {!SYSTEMBOLAGET_API_KEY && (
+        <View style={{ marginTop: 24, backgroundColor: '#fff8e1', borderRadius: 10, padding: 14 }}>
+          <Text style={{ color: '#7a5c00', fontSize: 13, lineHeight: 20 }}>
+            💡 <Text style={{ fontWeight: '700' }}>Tips:</Text> Registrera dig på Systembolagets API-portal för bättre träffar vid scanning av svenska viner.
+          </Text>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+function ScannerScreen({ onWineFound, onNotFound }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const lastScan = useRef(null);
@@ -163,14 +245,7 @@ function ScannerScreen({ onWineFound }) {
       if (wine) {
         onWineFound(wine);
       } else {
-        Alert.alert(
-          'Vin hittades inte',
-          `Streckkod: ${data}\n\n${!SYSTEMBOLAGET_API_KEY ? 'Tips: Lägg till Systembolagets API-nyckel för bättre träffar.' : ''}`,
-          [
-            { text: 'Sök på Systembolaget', onPress: () => Linking.openURL(`https://www.systembolaget.se/sok/?searchQuery=${data}`) },
-            { text: 'Skanna igen', onPress: () => { lastScan.current = null; } },
-          ]
-        );
+        onNotFound(data);
       }
     } catch {
       Alert.alert('Fel', 'Kontrollera internetanslutning.', [
@@ -439,14 +514,16 @@ function Badge({ text, color = '#6B2737' }) {
 export default function App() {
   const [screen, setScreen] = useState('scanner');
   const [currentWine, setCurrentWine] = useState(null);
+  const [notFoundBarcode, setNotFoundBarcode] = useState(null);
 
   function handleWineFound(wine) { setCurrentWine(wine); setScreen('detail'); }
+  function handleNotFound(barcode) { setNotFoundBarcode(barcode); setScreen('notfound'); }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1a0a0e' }}>
       <StatusBar barStyle="light-content" />
 
-      {screen === 'scanner' && <ScannerScreen onWineFound={handleWineFound} />}
+      {screen === 'scanner' && <ScannerScreen onWineFound={handleWineFound} onNotFound={handleNotFound} />}
 
       {screen === 'detail' && currentWine && (
         <View style={{ flex: 1 }}>
@@ -456,6 +533,17 @@ export default function App() {
             <TouchableOpacity onPress={() => setScreen('log')}><Text style={s.backBtn}>Min logg</Text></TouchableOpacity>
           </View>
           <WineDetailScreen wine={currentWine} onScanAgain={() => setScreen('scanner')} onGoToLog={() => setScreen('log')} />
+        </View>
+      )}
+
+      {screen === 'notfound' && (
+        <View style={{ flex: 1 }}>
+          <View style={s.detailHeader}>
+            <TouchableOpacity onPress={() => setScreen('scanner')}><Text style={s.backBtn}>← Skanna</Text></TouchableOpacity>
+            <Text style={s.detailHeaderTitle}>Hittades inte</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <NotFoundScreen barcode={notFoundBarcode} onScanAgain={() => setScreen('scanner')} />
         </View>
       )}
 
