@@ -209,9 +209,15 @@ function NotFoundScreen({ barcode, onScanAgain }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[s.btn, { backgroundColor: '#6B2737', marginBottom: 10 }]}
-        onPress={() => Linking.openURL(`https://www.vivino.com/search/wines?q=${encodeURIComponent(query)}`)}>
-        <Text style={s.btnText}>Sök på Vivino →</Text>
+        style={[s.btn, { backgroundColor: '#8B4513', marginBottom: 10 }]}
+        onPress={() => Linking.openURL(`https://www.wine-searcher.com/find/${encodeURIComponent(query)}`)}>
+        <Text style={s.btnText}>Sök på Wine-searcher →</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[s.btn, { backgroundColor: '#1a73e8', marginBottom: 10 }]}
+        onPress={() => Linking.openURL(`https://www.google.com/search?q=${encodeURIComponent(query + ' vin druva region')}`)}>
+        <Text style={s.btnText}>Googla vinet →</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
