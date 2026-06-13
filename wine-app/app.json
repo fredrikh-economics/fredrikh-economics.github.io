@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "VinScanner",
+    "slug": "vinscanner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#6B2737"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "se.fredrikh.vinscanner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Appen behöver kameran för att skanna vinflaskors streckkod.",
+        "NSPhotoLibraryUsageDescription": "Appen kan spara bilder på viner du loggat."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6B2737"
+      },
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Tillåt VinScanner att använda kameran för att skanna streckkoder."
+        }
+      ]
+    ]
+  }
+}
