@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Linking, FlatList, TextInput,
@@ -6,35 +6,98 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 
+// ─── Systembolaget API-nyckel ─────────────────────────────────────────────────
+// Registrera gratis på: https://api-portal.systembolaget.se/signup/
+// Klistra in din nyckel här när du fått den:
+const SYSTEMBOLAGET_API_KEY = '';
+
 // ─── Wine API ────────────────────────────────────────────────────────────────
 
-async function lookupBarcode(barcode) {
-  const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+async function lookupByBarcode(barcode) {
+  // 1. Prova Open Food Facts (internationell databas)
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const data = await res.json();
+    if (data.status === 1) {
+      const p = data.product;
+      const name = p.product_name || p.product_name_sv || p.product_name_en || '';
+      if (name) {
+        return {
+          source: 'openfoodfacts',
+          barcode,
+          name,
+          producer: p.brands || '',
+          country: (p.countries_tags?.[0] || '').replace('en:', ''),
+          region: p.manufacturing_places || '',
+          vintage: (name.match(/\b(19|20)\d{2}\b/) || [])[0] || '',
+          alcohol: p.nutriments?.alcohol ? `${p.nutriments.alcohol}%` : '',
+          grapes: extractGrapes(p.ingredients_text || '', p.labels || ''),
+          volume: p.quantity || '750 ml',
+          price: '',
+          taste: '',
+          foodPairings: [],
+          categories: p.categories || '',
+          productId: '',
+          storeLink: `https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(name)}`,
+        };
+      }
+    }
+  } catch {}
+
+  // 2. Prova Systembolaget (om API-nyckel finns)
+  if (SYSTEMBOLAGET_API_KEY) {
+    try {
+      const sbWine = await lookupSystembolaget(barcode);
+      if (sbWine) return sbWine;
+    } catch {}
+  }
+
+  return null;
+}
+
+async function lookupSystembolaget(query) {
+  const res = await fetch(
+    `https://api-extern.systembolaget.se/sb-api-ecommerce/v1/productsearch/search?searchQuery=${encodeURIComponent(query)}&size=1`,
+    { headers: { 'Ocp-Apim-Subscription-Key': SYSTEMBOLAGET_API_KEY } }
+  );
   const data = await res.json();
-  if (data.status !== 1) return null;
-  const p = data.product;
-  const name = p.product_name || p.product_name_sv || p.product_name_en || 'Okänt vin';
+  const products = data.products || [];
+  if (products.length === 0) return null;
+
+  const p = products[0];
+  const name = [p.productNameBold, p.productNameThin].filter(Boolean).join(' ');
+  const productId = p.productId || '';
+
   return {
-    barcode,
+    source: 'systembolaget',
+    barcode: query,
     name,
-    producer: p.brands || '',
-    country: (p.countries_tags?.[0] || '').replace('en:', ''),
-    vintage: (name.match(/\b(19|20)\d{2}\b/) || [])[0] || '',
-    alcohol: (p.nutriments?.alcohol ? p.nutriments.alcohol + '%' : ''),
-    grapes: extractGrapes(p.ingredients_text || '', p.labels || ''),
-    volume: p.quantity || '750 ml',
-    categories: p.categories || '',
-    storeLink: `https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(name)}`,
+    producer: p.producerName || p.supplierName || '',
+    country: p.country || '',
+    region: p.originLevel1 || '',
+    subregion: p.originLevel2 || '',
+    vintage: p.vintage ? String(p.vintage) : '',
+    alcohol: p.alcoholPercentage ? `${p.alcoholPercentage}%` : '',
+    grapes: Array.isArray(p.grapeGrapes) ? p.grapeGrapes.join(', ') : (p.grapeGrapes || ''),
+    volume: p.volume ? `${p.volume} ml` : '',
+    price: p.price ? `${p.price} kr` : '',
+    taste: p.taste || '',
+    foodPairings: Array.isArray(p.foodPairings) ? p.foodPairings : [],
+    categories: p.categoryLevel1 || '',
+    productId,
+    storeLink: productId
+      ? `https://www.systembolaget.se/sok/?searchQuery=${productId}`
+      : `https://www.systembolaget.se/sok/?searchQuery=${encodeURIComponent(name)}`,
   };
 }
 
 function extractGrapes(ingredients, labels) {
   const text = (ingredients + ' ' + labels).toLowerCase();
   const grapes = [
-    'cabernet sauvignon','merlot','pinot noir','syrah','shiraz',
-    'chardonnay','sauvignon blanc','riesling','pinot gris','grenache',
-    'tempranillo','sangiovese','malbec','zinfandel','viognier',
-    'chenin blanc','muscat','moscato',
+    'cabernet sauvignon', 'merlot', 'pinot noir', 'syrah', 'shiraz',
+    'chardonnay', 'sauvignon blanc', 'riesling', 'pinot gris', 'grenache',
+    'tempranillo', 'sangiovese', 'malbec', 'zinfandel', 'viognier',
+    'chenin blanc', 'muscat', 'moscato',
   ];
   return grapes
     .filter(g => text.includes(g))
@@ -43,32 +106,48 @@ function extractGrapes(ingredients, labels) {
 }
 
 function getFoodPairings(wine) {
-  const t = (wine.categories + ' ' + wine.name + ' ' + wine.grapes).toLowerCase();
+  // Använd Systembolagets matparing om den finns
+  if (wine.foodPairings && wine.foodPairings.length > 0) {
+    return { pairings: wine.foodPairings, temp: getTemp(wine), occasion: '' };
+  }
+  // Annars gissa utifrån vintyp
+  const t = (wine.categories + ' ' + wine.name + ' ' + wine.grapes + ' ' + wine.taste).toLowerCase();
   if (t.includes('champagne') || t.includes('sparkling') || t.includes('mousserande') || t.includes('prosecco'))
-    return { pairings: ['Skaldjur','Sushi','Lax','Ostbricka'], temp: '6–8°C', occasion: 'Aperitif, fest' };
+    return { pairings: ['Skaldjur', 'Sushi', 'Lax', 'Ostbricka'], temp: '6–8°C', occasion: 'Aperitif, fest' };
   if (t.includes('sauvignon blanc') || t.includes('riesling') || t.includes('pinot gris'))
-    return { pairings: ['Getost','Fisk','Sallad','Skaldjur'], temp: '8–10°C', occasion: 'Sommarmat' };
+    return { pairings: ['Getost', 'Fisk', 'Sallad', 'Skaldjur'], temp: '8–10°C', occasion: 'Sommarmat' };
   if (t.includes('chardonnay'))
-    return { pairings: ['Hummer','Grillad fisk','Kyckling','Creamy pasta'], temp: '10–12°C', occasion: 'Finmiddag' };
+    return { pairings: ['Hummer', 'Grillad fisk', 'Kyckling', 'Creamy pasta'], temp: '10–12°C', occasion: 'Finmiddag' };
   if (t.includes('pinot noir') || t.includes('bourgogne'))
-    return { pairings: ['Anka','Lax','Svamp','Kalvkött'], temp: '14–16°C', occasion: 'Elegant middag' };
+    return { pairings: ['Anka', 'Lax', 'Svamp', 'Kalvkött'], temp: '14–16°C', occasion: 'Elegant middag' };
   if (t.includes('rosé') || t.includes('rose'))
-    return { pairings: ['Grillad kyckling','Lätt pasta','Skaldjur'], temp: '8–10°C', occasion: 'Sommarmiddag' };
+    return { pairings: ['Grillad kyckling', 'Lätt pasta', 'Skaldjur'], temp: '8–10°C', occasion: 'Sommarmiddag' };
   if (t.includes('cabernet') || t.includes('merlot') || t.includes('shiraz') || t.includes('malbec'))
-    return { pairings: ['Grillat nötkött','Lamm','Vilt','Lagrad ost'], temp: '16–18°C', occasion: 'BBQ, höstmiddag' };
-  return { pairings: ['Prova till din favoriträtt!'], temp: '12–16°C', occasion: 'Passar de flesta tillfällen' };
+    return { pairings: ['Grillat nötkött', 'Lamm', 'Vilt', 'Lagrad ost'], temp: '16–18°C', occasion: 'BBQ, höstmiddag' };
+  return { pairings: ['Prova till din favoriträtt!'], temp: '12–16°C', occasion: '' };
 }
 
-// ─── Simple storage (in-memory for Snack, swap to AsyncStorage for real build) ─
+function getTemp(wine) {
+  const t = (wine.categories + ' ' + wine.name).toLowerCase();
+  if (t.includes('mousserande') || t.includes('champagne') || t.includes('rosé')) return '6–8°C';
+  if (t.includes('vitt') || t.includes('white')) return '8–12°C';
+  if (t.includes('rött') || t.includes('red')) return '16–18°C';
+  return '12–16°C';
+}
+
+// ─── Enkel lagring (i minnet) ─────────────────────────────────────────────────
 
 let wineLogData = [];
 
 function saveWine(wine) {
-  wineLogData = [{ ...wine, id: Date.now().toString(), dateTasted: new Date().toISOString(), rating: null, notes: '' }, ...wineLogData];
+  wineLogData = [{
+    ...wine, id: Date.now().toString(),
+    dateTasted: new Date().toISOString(), rating: null, notes: '',
+  }, ...wineLogData];
   return wineLogData[0];
 }
 
-// ─── Screens ─────────────────────────────────────────────────────────────────
+// ─── Scanner ──────────────────────────────────────────────────────────────────
 
 function ScannerScreen({ onWineFound }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -80,13 +159,13 @@ function ScannerScreen({ onWineFound }) {
     lastScan.current = data;
     setLoading(true);
     try {
-      const wine = await lookupBarcode(data);
+      const wine = await lookupByBarcode(data);
       if (wine) {
         onWineFound(wine);
       } else {
         Alert.alert(
           'Vin hittades inte',
-          `Streckkod: ${data}`,
+          `Streckkod: ${data}\n\n${!SYSTEMBOLAGET_API_KEY ? 'Tips: Lägg till Systembolagets API-nyckel för bättre träffar.' : ''}`,
           [
             { text: 'Sök på Systembolaget', onPress: () => Linking.openURL(`https://www.systembolaget.se/sok/?searchQuery=${data}`) },
             { text: 'Skanna igen', onPress: () => { lastScan.current = null; } },
@@ -121,7 +200,7 @@ function ScannerScreen({ onWineFound }) {
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing="back"
-        barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a'] }}
+        barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e'] }}
         onBarcodeScanned={!loading ? handleBarcode : undefined}
       />
       <View style={s.scanOverlay}>
@@ -139,15 +218,24 @@ function ScannerScreen({ onWineFound }) {
             </View>
           )}
         </View>
-        <View style={s.scanBottom}><Text style={s.scanHint}>EAN-13 streckkod</Text></View>
+        <View style={s.scanBottom}>
+          <Text style={s.scanHint}>EAN-13 streckkod</Text>
+          {!SYSTEMBOLAGET_API_KEY && (
+            <Text style={[s.scanHint, { fontSize: 11, color: 'rgba(255,200,100,0.9)', marginTop: 4 }]}>
+              ⚠ Utan API-nyckel: begränsad databas
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );
 }
 
-function WineDetailScreen({ wine, onSave, onScanAgain, onGoToLog }) {
+// ─── Vininfo ──────────────────────────────────────────────────────────────────
+
+function WineDetailScreen({ wine, onScanAgain, onGoToLog }) {
   const [saved, setSaved] = useState(false);
-  const p = getFoodPairings(wine);
+  const pairings = getFoodPairings(wine);
 
   function handleSave() {
     saveWine(wine);
@@ -156,32 +244,49 @@ function WineDetailScreen({ wine, onSave, onScanAgain, onGoToLog }) {
       { text: 'OK' },
       { text: 'Visa logg', onPress: onGoToLog },
     ]);
-    onSave?.();
   }
 
   return (
     <ScrollView style={s.detailBg} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      {wine.source === 'systembolaget' && (
+        <View style={s.sourceBadge}>
+          <Text style={s.sourceBadgeText}>✓ Systembolaget</Text>
+        </View>
+      )}
+
       <View style={{ marginBottom: 16 }}>
         <Text style={s.wineName}>{wine.name}</Text>
         {!!wine.producer && <Text style={s.producer}>{wine.producer}</Text>}
-        {!!wine.vintage && <Text style={s.vintage}>Årgång {wine.vintage}</Text>}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+          {!!wine.vintage && <Badge text={`Årgång ${wine.vintage}`} />}
+          {!!wine.price && <Badge text={wine.price} color="#2d7a3a" />}
+          {!!wine.alcohol && <Badge text={wine.alcohol} color="#555" />}
+        </View>
       </View>
 
       <Card title="Grundinfo">
         <Row label="Land" value={wine.country} />
+        <Row label="Region" value={wine.region} />
+        {!!wine.subregion && <Row label="Underregion" value={wine.subregion} />}
         <Row label="Druva(r)" value={wine.grapes} />
-        <Row label="Alkohol" value={wine.alcohol} />
         <Row label="Volym" value={wine.volume} />
         <Row label="Streckkod" value={wine.barcode} />
+        {!!wine.productId && <Row label="Art.nr Systembolaget" value={wine.productId} />}
       </Card>
 
+      {!!wine.taste && (
+        <Card title="Smakbeskrivning">
+          <Text style={{ color: '#333', fontSize: 14, lineHeight: 20 }}>{wine.taste}</Text>
+        </Card>
+      )}
+
       <Card title="Servering">
-        <Row label="Temperatur" value={p.temp} />
-        <Row label="Tillfälle" value={p.occasion} />
+        <Row label="Temperatur" value={pairings.temp} />
+        {!!pairings.occasion && <Row label="Tillfälle" value={pairings.occasion} />}
       </Card>
 
       <Card title="Passar till">
-        {p.pairings.map((item, i) => (
+        {pairings.pairings.map((item, i) => (
           <View key={i} style={{ flexDirection: 'row', paddingVertical: 3 }}>
             <Text style={{ color: '#2d7a3a', marginRight: 8, fontSize: 15 }}>✓</Text>
             <Text style={{ fontSize: 14, color: '#1a0a0e' }}>{item}</Text>
@@ -189,18 +294,27 @@ function WineDetailScreen({ wine, onSave, onScanAgain, onGoToLog }) {
         ))}
       </Card>
 
-      <TouchableOpacity style={[s.btn, { backgroundColor: '#006400', marginBottom: 8 }]} onPress={() => Linking.openURL(wine.storeLink)}>
-        <Text style={s.btnText}>Sök på Systembolaget →</Text>
+      <TouchableOpacity style={[s.btn, { backgroundColor: '#006400', marginBottom: 8 }]}
+        onPress={() => Linking.openURL(wine.storeLink)}>
+        <Text style={s.btnText}>
+          {wine.source === 'systembolaget' ? 'Se på Systembolaget →' : 'Sök på Systembolaget →'}
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[s.btn, saved && { backgroundColor: '#2d7a3a' }, { marginBottom: 8 }]} onPress={handleSave} disabled={saved}>
+
+      <TouchableOpacity style={[s.btn, saved && { backgroundColor: '#2d7a3a' }, { marginBottom: 8 }]}
+        onPress={handleSave} disabled={saved}>
         <Text style={s.btnText}>{saved ? '✓ Sparat i din vinlogg' : 'Spara i min vinlogg'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[s.btn, { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6B2737' }]} onPress={onScanAgain}>
+
+      <TouchableOpacity style={[s.btn, { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6B2737' }]}
+        onPress={onScanAgain}>
         <Text style={[s.btnText, { color: '#6B2737' }]}>Skanna ett nytt vin</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
+
+// ─── Vinlogg ──────────────────────────────────────────────────────────────────
 
 function WineLogScreen({ onScan }) {
   const [log, setLog] = useState([...wineLogData]);
@@ -221,7 +335,9 @@ function WineLogScreen({ onScan }) {
 
   function saveNote() {
     const r = parseFloat(ratingValue);
-    wineLogData = wineLogData.map(w => w.id === editId ? { ...w, notes: noteText, rating: isNaN(r) ? null : Math.min(5, Math.max(0, r)) } : w);
+    wineLogData = wineLogData.map(w =>
+      w.id === editId ? { ...w, notes: noteText, rating: isNaN(r) ? null : Math.min(5, Math.max(0, r)) } : w
+    );
     refresh();
     setEditId(null);
   }
@@ -245,20 +361,29 @@ function WineLogScreen({ onScan }) {
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         renderItem={({ item }) => (
           <View style={s.logCard}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#1a0a0e' }} numberOfLines={2}>{item.name}</Text>
                 {!!item.producer && <Text style={{ fontSize: 12, color: '#777', marginTop: 2 }}>{item.producer}</Text>}
-                <Text style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{new Date(item.dateTasted).toLocaleDateString('sv-SE')}</Text>
+                <View style={{ flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                  {!!item.country && <Text style={s.tag}>{item.country}</Text>}
+                  {!!item.vintage && <Text style={s.tag}>{item.vintage}</Text>}
+                  {!!item.price && <Text style={[s.tag, { backgroundColor: '#e8f5e9', color: '#2d7a3a' }]}>{item.price}</Text>}
+                </View>
               </View>
               <Text style={{ color: '#c0a040', fontSize: 16 }}>
                 {item.rating != null ? '★'.repeat(Math.round(item.rating)) + '☆'.repeat(5 - Math.round(item.rating)) : '–'}
               </Text>
             </View>
             {!!item.notes && <Text style={{ color: '#555', fontSize: 13, fontStyle: 'italic', marginBottom: 8 }}>"{item.notes}"</Text>}
+            <Text style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>{new Date(item.dateTasted).toLocaleDateString('sv-SE')}</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <TouchableOpacity style={s.editBtn} onPress={() => openEdit(item)}><Text style={{ color: '#6B2737', fontSize: 13, fontWeight: '600' }}>Anteckning & betyg</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item.id, item.name)}><Text style={{ color: '#c0392b', fontSize: 13 }}>Ta bort</Text></TouchableOpacity>
+              <TouchableOpacity style={s.editBtn} onPress={() => openEdit(item)}>
+                <Text style={{ color: '#6B2737', fontSize: 13, fontWeight: '600' }}>Anteckning & betyg</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDelete(item.id, item.name)}>
+                <Text style={{ color: '#c0392b', fontSize: 13 }}>Ta bort</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -280,7 +405,7 @@ function WineLogScreen({ onScan }) {
   );
 }
 
-// ─── Shared components ────────────────────────────────────────────────────────
+// ─── Delade komponenter ───────────────────────────────────────────────────────
 
 function Card({ title, children }) {
   return (
@@ -301,10 +426,18 @@ function Row({ label, value }) {
   );
 }
 
+function Badge({ text, color = '#6B2737' }) {
+  return (
+    <View style={{ backgroundColor: color + '18', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+      <Text style={{ color, fontSize: 13, fontWeight: '600' }}>{text}</Text>
+    </View>
+  );
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [screen, setScreen] = useState('scanner'); // 'scanner' | 'detail' | 'log'
+  const [screen, setScreen] = useState('scanner');
   const [currentWine, setCurrentWine] = useState(null);
 
   function handleWineFound(wine) { setCurrentWine(wine); setScreen('detail'); }
@@ -313,9 +446,8 @@ export default function App() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1a0a0e' }}>
       <StatusBar barStyle="light-content" />
 
-      {screen === 'scanner' && (
-        <ScannerScreen onWineFound={handleWineFound} />
-      )}
+      {screen === 'scanner' && <ScannerScreen onWineFound={handleWineFound} />}
+
       {screen === 'detail' && currentWine && (
         <View style={{ flex: 1 }}>
           <View style={s.detailHeader}>
@@ -323,13 +455,10 @@ export default function App() {
             <Text style={s.detailHeaderTitle}>Vininfo</Text>
             <TouchableOpacity onPress={() => setScreen('log')}><Text style={s.backBtn}>Min logg</Text></TouchableOpacity>
           </View>
-          <WineDetailScreen
-            wine={currentWine}
-            onScanAgain={() => setScreen('scanner')}
-            onGoToLog={() => setScreen('log')}
-          />
+          <WineDetailScreen wine={currentWine} onScanAgain={() => setScreen('scanner')} onGoToLog={() => setScreen('log')} />
         </View>
       )}
+
       {screen === 'log' && (
         <View style={{ flex: 1 }}>
           <View style={s.detailHeader}>
@@ -341,7 +470,6 @@ export default function App() {
         </View>
       )}
 
-      {/* Bottom tab bar */}
       <View style={s.tabBar}>
         <TouchableOpacity style={s.tab} onPress={() => setScreen('scanner')}>
           <Text style={s.tabIcon}>📷</Text>
@@ -356,10 +484,9 @@ export default function App() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Stilar ───────────────────────────────────────────────────────────────────
 
-const C = 26;
-const CW = 4;
+const C = 26, CW = 4;
 
 const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#1a0a0e' },
@@ -385,9 +512,11 @@ const s = StyleSheet.create({
   backBtn: { color: '#fff', fontSize: 14 },
   wineName: { fontSize: 24, fontWeight: '700', color: '#1a0a0e', lineHeight: 30 },
   producer: { fontSize: 16, color: '#555', marginTop: 4 },
-  vintage: { fontSize: 15, color: '#6B2737', marginTop: 2, fontWeight: '600' },
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   cardTitle: { fontSize: 12, fontWeight: '700', color: '#6B2737', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+  sourceBadge: { backgroundColor: '#e8f5e9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 10 },
+  sourceBadgeText: { color: '#2d7a3a', fontSize: 12, fontWeight: '700' },
+  tag: { backgroundColor: '#f0ebe6', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 2, fontSize: 12, color: '#555' },
   logCard: { backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   editBtn: { backgroundColor: '#f0ebe6', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8 },
   modalLabel: { fontSize: 12, color: '#888', marginBottom: 6, marginTop: 8, fontWeight: '600', textTransform: 'uppercase' },
